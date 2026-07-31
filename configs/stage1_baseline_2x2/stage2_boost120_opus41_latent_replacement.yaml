@@ -1,0 +1,30 @@
+# n=120 BOOST — Opus 4.1 @ latent+replacement, A_raw+A3, for the delta-vs-baseline slope test.
+# Tightens the n=40 deltas to ~±0.12 CI. Rule: results/stage2_slope_test_DECISION_RULE.md
+experiment_id: stage2_boost120_opus41_latent_replacement
+description: n=120 boost (A_raw+A3) Opus 4.1 latent+replacement for slope test.
+seed: 12345
+model: anthropic/claude-opus-4-1-20250805
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null
+log_base: logs/stage2_boost120/latent_replacement
+results_root: results
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: replacement
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+levels:
+  A_raw:
+    scripts: []
+    n: 120
+  A3:
+    scripts: []
+    n: 120
+cost:
+  avg_tokens_per_rollout: 2500
+  usd_per_1k_tokens: 0.03
+  max_usd: 22.0

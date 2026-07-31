@@ -1,0 +1,41 @@
+# secrets / env
+.env
+
+# python
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+.venv*/
+.venv-run/
+
+# os / editor
+.DS_Store
+.ipynb_checkpoints/
+.claude/
+tmp/
+
+# raw provider transcripts; compact summaries and metadata are committed
+logs/
+*.eval
+results/**/rollouts.jsonl
+
+# planning / working notes (kept local, not published)
+plan.md
+CRITICAL_PLAN.md
+stage1_execution_plan.md
+PREREGISTRATION.md
+PREREGISTRATION_STEP5.md
+PREREGISTRATION_STEP6.md
+results/*_FINDINGS.md
+results/*_DECISION_RULE.md
+results/*_GATE*_report.txt
+results/*_GATE_report.txt
+
+# latex build artifacts
+writeup/*.log
+writeup/*.aux
+writeup/*.out
+writeup/*.bbl
+writeup/*.blg

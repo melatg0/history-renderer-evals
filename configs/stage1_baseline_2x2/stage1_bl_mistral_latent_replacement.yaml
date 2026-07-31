@@ -1,0 +1,30 @@
+# Baseline 2x2 screen — mistral @ goal_type=latent, urgency=replacement (A_raw only, n=40).
+# Purpose: disambiguate FAMILY vs BASELINE. Find the (model,config) cells landing
+# near ~43% so a same-baseline cross-family A3 comparison becomes possible.
+# Grader is invariant to goal_type (email_content identical latent/explicit; only the
+# system prompt gains one goal line) -> rate shifts are real, not labeling artifacts.
+experiment_id: stage1_bl_mistral_latent_replacement
+description: Baseline screen mistral latent+replacement, A_raw only, n=40.
+seed: 12345
+model: openrouter/mistralai/mistral-large-2407
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null
+log_base: logs/stage1_baseline_2x2/mistral_latent_replacement
+results_root: results
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: replacement
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+levels:
+  A_raw:
+    scripts: []
+    n: 40
+cost:
+  avg_tokens_per_rollout: 2500
+  usd_per_1k_tokens: 0.002
+  max_usd: 4

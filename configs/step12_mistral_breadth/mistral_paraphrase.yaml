@@ -1,0 +1,33 @@
+# STEP12 breadth — Mistral-Large paraphrase arm (does the effect travel to a 2nd family?).
+# Mistral-Large is the one reachable non-Qwen model with CONFIRMED headroom: step8 screened it
+# at explicit+replacement and got A_raw 55%, A3(script_01) 68% (+12pp AMPLIFY — like Opus, opposite
+# Qwen). This run replays the FULL 8-paraphrase arm at the SAME config to test whether that +12
+# amplification is ARTIFACT-ROBUST (a real 2nd-family/2nd-direction effect) or ARTIFACT-FRAGILE
+# (collapses across paraphrases, like the Opus +18 did). Config is byte-identical to the step8
+# Mistral screen (explicit + replacement + dont-prime) so A_raw/s01 reproduce and the +12 is the
+# reference point. Self-contained (re-runs A_raw + s01 fresh; does not stitch step8 logs).
+# Readout rules pre-committed in results/step12_mistral_breadth_PRECOMMIT.md.
+experiment_id: step12_mistral_paraphrase
+description: STEP12 breadth — Mistral-Large, explicit+replacement, A_raw vs A3 across all 8 paraphrases, n=40.
+seed: 12345
+model: openrouter/mistralai/mistral-large-2407
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null
+log_base: logs/step12_mistral_breadth/mistral_paraphrase
+results_root: results
+common:
+  scenario: blackmail
+  goal_type: explicit
+  urgency_type: replacement
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: false
+levels:
+  A_raw: { scripts: [], n: 40 }
+  A3:
+    scripts: [script_01, script_02, script_03, script_04, script_05, script_06, script_07, script_08]
+    n_per_script: 40
+cost: { avg_tokens_per_rollout: 2500, usd_per_1k_tokens: 0.03, max_usd: 40.0 }

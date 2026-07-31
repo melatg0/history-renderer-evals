@@ -1,0 +1,39 @@
+# Step-5 self-vs-other FIRST pass — qwen. A_raw + A3_own + A3_other, n=250.
+# Primary contrast: A3_own vs A3_other (byte-identical body; own=your prior session,
+# other=a separate AI system). A_raw run FRESH in-pass (NOT 2a reuse) as the matched
+# reference for the own-vs-other deltas. Prereg: PREREGISTRATION_STEP5.md (frozen).
+experiment_id: stage5_self_other_qwen
+description: Step-5 self-vs-other (qwen) — A_raw/A3_own/A3_other, n=250.
+seed: 12345
+model: openrouter/qwen/qwen3-30b-a3b-instruct-2507
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null
+log_base: logs/stage5_self_other/qwen
+results_root: results
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+  # EXPLORATORY (non-preregistered): belief/eval-awareness scorer on the completion.
+  # Harm-rate deltas are the pre-registered analysis; `aware` is a free labeled
+  # exploratory measure (completion-only, no prompt change). Firewalled from prereg.
+  score_eval_awareness: true
+levels:
+  A_raw:
+    scripts: []
+    n: 250
+  A3_own:
+    scripts: []
+    n: 250
+  A3_other:
+    scripts: []
+    n: 250
+cost:
+  avg_tokens_per_rollout: 2500
+  usd_per_1k_tokens: 0.0004
+  max_usd: 3

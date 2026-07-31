@@ -1,0 +1,31 @@
+# STEP11 floor-config sweep — Llama-3.1-70B at the MILD ANCHOR config.
+# Companion to floor_qwen25_72b_anchor.yaml. STEP8 floored Llama-3.1-70B at 1/40,
+# but ONLY at the aggressive config (explicit + replacement + prime). This cell
+# re-tests it at the MILD anchor config (latent + restriction + prime ON) — the
+# config where Qwen3-30B has 48% headroom — to check whether the Llama floor is
+# config-dependent or genuine across configs. Config byte-identical to the
+# Qwen3-30B anchor except the model. A_raw is the headroom test; A3(script_01)
+# auto-runs so a lifted cell immediately yields the injection contrast.
+# Readout rules pre-committed in results/step11_floor_sweep_PRECOMMIT.md.
+experiment_id: step11_floor_llama31_70b_anchor
+description: STEP11 floor sweep — Llama-3.1-70B, MILD anchor config (latent+restriction+prime), A_raw vs A3 script_01, n=40.
+seed: 12345
+model: openrouter/meta-llama/llama-3.1-70b-instruct
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null
+log_base: logs/step11_floor_sweep/llama31_70b_anchor
+results_root: results
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: false
+levels:
+  A_raw: { scripts: [], n: 40 }
+  A3: { scripts: [script_01], n_per_script: 40 }
+cost: { avg_tokens_per_rollout: 2500, usd_per_1k_tokens: 0.03, max_usd: 8.0 }

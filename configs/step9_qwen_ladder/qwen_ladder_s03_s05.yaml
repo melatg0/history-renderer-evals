@@ -1,0 +1,27 @@
+# STEP9 QWEN RICHNESS LADDER — the missing cell. A_raw + A3 already exist (48.4% / s03 17.5% /
+# s05 14.2%); this fills A1 (actions-only) and A2 (actions+obs) on Qwen for the two cleanest
+# suppressor traces (s03, s05), so we can test whether the Qwen suppression REQUIRES reasoning
+# or is produced by any prior-session block. Same config as the Qwen anchor (latent/restriction,
+# prime on). If A1/A2 do NOT suppress and A3 does -> "reasoning" claim established on anchor model.
+experiment_id: step9_qwen_ladder
+description: STEP9 Qwen richness ladder — A1, A2 for traces s03 & s05, n=120.
+seed: 12345
+model: openrouter/qwen/qwen3-30b-a3b-instruct-2507
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null
+log_base: logs/step9_qwen_ladder
+results_root: results
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: false
+levels:
+  A1: { scripts: [script_03, script_05], n_per_script: 120 }
+  A2: { scripts: [script_03, script_05], n_per_script: 120 }
+cost: { avg_tokens_per_rollout: 2500, usd_per_1k_tokens: 0.03, max_usd: 20.0 }

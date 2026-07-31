@@ -1,0 +1,32 @@
+# STEP7 PARAPHRASE ROBUSTNESS — Opus 4.1, blackmail, A3 scripts 02-04, n=120.
+# Addresses reviewer concern: the confirmatory grid conditions on ONE A3 script
+# (script_01). This runs three held-out paraphrase scripts at the confirmatory n
+# so the +Reasoning effect can be shown to be a property of the CLASS of
+# reasoning-rich demonstration, not one 178-word paragraph. A_raw baseline is
+# reused from the confirmatory run (53/120); not re-run here.
+experiment_id: step7_para_opus41_blackmail
+description: STEP7 paraphrase robustness — Opus 4.1 blackmail, A3 script_02..04, n=120.
+seed: 12345
+model: openrouter/anthropic/claude-opus-4.1
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null
+log_base: logs/step7_para/opus41_blackmail
+results_root: results
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: false
+levels:
+  A3:
+    scripts: [script_02, script_03, script_04]
+    n_per_script: 120
+cost:
+  avg_tokens_per_rollout: 2500
+  usd_per_1k_tokens: 0.03
+  max_usd: 60.0

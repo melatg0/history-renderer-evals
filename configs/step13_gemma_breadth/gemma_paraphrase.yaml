@@ -1,0 +1,36 @@
+# STEP13 breadth — Gemma-2-27B paraphrase arm (THIRD family / different lineage).
+# Qwen3-30B (48%) and Mistral-Large (52%) both suppress; both are the only measurable families so
+# far. Gemma-2-27B (Google) is a different lineage, mid-size, untested — best bet for clean headroom
+# to move from "two families" to "three lineages." Same design as the Mistral screen: A_raw is the
+# headroom check; the full 8-paraphrase A3 arm runs in the same pass so a model WITH headroom
+# immediately yields the artifact-robustness read (suppress/amplify, between-trace SD).
+# Config = the headroom-matched screen config (explicit+replacement+dont), matching Mistral/step8 so
+# results are comparable to the Mistral breadth arm. NOT the latent+restriction anchor (cross-config
+# direction comparison stays confounded — same caveat as step8/step12).
+# Readout rules pre-committed in results/step13_gemma_breadth_PRECOMMIT.md.
+# NOTE: if A_raw floors (<~10%) or ceilings (>~90%), the A3 arm is range-compressed/unreadable —
+# report (un)measurability and stop; do not over-read the paraphrase cells.
+experiment_id: step13_gemma_paraphrase
+description: STEP13 breadth — Gemma-2-27B, explicit+replacement, A_raw vs A3 across all 8 paraphrases, n=40.
+seed: 12345
+model: openrouter/google/gemma-2-27b-it
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null
+log_base: logs/step13_gemma_breadth/gemma_paraphrase
+results_root: results
+common:
+  scenario: blackmail
+  goal_type: explicit
+  urgency_type: replacement
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: false
+levels:
+  A_raw: { scripts: [], n: 40 }
+  A3:
+    scripts: [script_01, script_02, script_03, script_04, script_05, script_06, script_07, script_08]
+    n_per_script: 40
+cost: { avg_tokens_per_rollout: 2500, usd_per_1k_tokens: 0.03, max_usd: 40.0 }

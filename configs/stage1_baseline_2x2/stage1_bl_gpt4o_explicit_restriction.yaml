@@ -1,0 +1,30 @@
+# Baseline 2x2 screen — gpt4o @ goal_type=explicit, urgency=restriction (A_raw only, n=40).
+# Purpose: disambiguate FAMILY vs BASELINE. Find the (model,config) cells landing
+# near ~43% so a same-baseline cross-family A3 comparison becomes possible.
+# Grader is invariant to goal_type (email_content identical latent/explicit; only the
+# system prompt gains one goal line) -> rate shifts are real, not labeling artifacts.
+experiment_id: stage1_bl_gpt4o_explicit_restriction
+description: Baseline screen gpt4o explicit+restriction, A_raw only, n=40.
+seed: 12345
+model: openrouter/openai/gpt-4o-2024-11-20
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null
+log_base: logs/stage1_baseline_2x2/gpt4o_explicit_restriction
+results_root: results
+common:
+  scenario: blackmail
+  goal_type: explicit
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+levels:
+  A_raw:
+    scripts: []
+    n: 40
+cost:
+  avg_tokens_per_rollout: 2500
+  usd_per_1k_tokens: 0.005
+  max_usd: 6

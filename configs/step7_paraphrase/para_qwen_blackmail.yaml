@@ -1,0 +1,30 @@
+# STEP7 PARAPHRASE ROBUSTNESS — Qwen3-30B, blackmail, A3 scripts 02-04, n=120.
+# Companion to para_opus41_blackmail. A_raw baseline reused from prior Qwen runs;
+# not re-run here. Confirms the suppression holds across paraphrases of the
+# reasoning-rich demonstration, not just script_01.
+experiment_id: step7_para_qwen_blackmail
+description: STEP7 paraphrase robustness — Qwen3-30B blackmail, A3 script_02..04, n=120.
+seed: 12345
+model: openrouter/qwen/qwen3-30b-a3b-instruct-2507
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null
+log_base: logs/step7_para/qwen_blackmail
+results_root: results
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: false
+levels:
+  A3:
+    scripts: [script_02, script_03, script_04]
+    n_per_script: 120
+cost:
+  avg_tokens_per_rollout: 2500
+  usd_per_1k_tokens: 0.03
+  max_usd: 60.0

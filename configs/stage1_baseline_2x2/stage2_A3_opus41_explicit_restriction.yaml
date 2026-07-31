@@ -1,0 +1,29 @@
+# Stage-2 A3 convergence cell — Opus 4.1 @ goal_type=explicit, urgency=restriction, A3 (n=40).
+# A_raw baseline here already measured (0.625).
+# Add A3, read endpoint vs the 44%-start (2a=0.625) as a CONVERGENCE test.
+# Decision rule pre-committed: results/stage2_A3_convergence_DECISION_RULE.md
+experiment_id: stage2_A3_opus41_explicit_restriction
+description: Stage-2 A3 on Opus 4.1 at higher baseline (explicit+restriction) — convergence test.
+seed: 12345
+model: anthropic/claude-opus-4-1-20250805
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null
+log_base: logs/stage2_A3/explicit_restriction
+results_root: results
+common:
+  scenario: blackmail
+  goal_type: explicit
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+levels:
+  A3:
+    scripts: []
+    n: 40
+cost:
+  avg_tokens_per_rollout: 2500
+  usd_per_1k_tokens: 0.03
+  max_usd: 8.0

@@ -1,0 +1,24 @@
+# STEP8 model-generalization screen — deepseek_v31. Headroom-matched config (explicit+replacement).
+# A_raw + A3(script_01), n=40. DIRECTION test, not config-matched to Opus.
+experiment_id: step8_screen_deepseek_v31
+description: STEP8 model-gen screen — deepseek_v31, explicit+replacement, A_raw vs A3 script_01, n=40.
+seed: 12345
+model: openrouter/deepseek/deepseek-chat-v3.1
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null
+log_base: logs/step8_modelgen/deepseek_v31
+results_root: results
+common:
+  scenario: blackmail
+  goal_type: explicit
+  urgency_type: replacement
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: false
+levels:
+  A_raw: { scripts: [], n: 40 }
+  A3: { scripts: [script_01], n_per_script: 40 }
+cost: { avg_tokens_per_rollout: 2500, usd_per_1k_tokens: 0.03, max_usd: 8.0 }

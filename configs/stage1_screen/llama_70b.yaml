@@ -1,0 +1,33 @@
+# Baseline screen — Llama-3.3-70B-Instruct (dense open-weight; de-confounds Qwen MoE).
+# A_raw only, n=40: does it land mid-band (~40-55%)? If so, add an A3 cell next.
+
+experiment_id: stage1_screen_llama_70b
+description: Mid-band baseline screen (A_raw only) — Llama-3.3-70B-Instruct.
+
+seed: 12345
+model: openrouter/meta-llama/llama-3.3-70b-instruct   # dense, non-reasoning
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null        # non-reasoning; no thinking to suppress
+
+log_base: logs/stage1_screen/llama_70b
+results_root: results
+
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+
+levels:
+  A_raw:
+    scripts: []
+    n: 40
+
+cost:
+  avg_tokens_per_rollout: 2500
+  usd_per_1k_tokens: 0.0004    # Llama-70B is cheap
+  max_usd: 3.0

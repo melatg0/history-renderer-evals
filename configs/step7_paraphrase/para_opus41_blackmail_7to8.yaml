@@ -1,0 +1,23 @@
+experiment_id: step7_para_opus41_blackmail_5to8
+description: STEP7 paraphrase — Opus 4.1 blackmail, A3 script_07..08, n=120 (parallel to unstick 05-08).
+seed: 12345
+model: openrouter/anthropic/claude-opus-4.1
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null
+log_base: logs/step7_para/opus41_blackmail_5to8
+results_root: results
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: false
+levels:
+  A3:
+    scripts: [script_07, script_08]
+    n_per_script: 120
+cost: { avg_tokens_per_rollout: 2500, usd_per_1k_tokens: 0.03, max_usd: 30.0 }

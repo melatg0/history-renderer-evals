@@ -1,0 +1,26 @@
+# STEP7 PARAPHRASE (scripts 05-08) — Opus 4.1, blackmail, A3 only, n=120.
+# Extends the paraphrase set to 8 scripts total so a random-effects model can
+# report a between-script SD. A_raw baseline reused (53/120 native, 83/120 openrouter ctrl).
+experiment_id: step7_para_opus41_blackmail_5to8
+description: STEP7 paraphrase — Opus 4.1 blackmail, A3 script_05..08, n=120.
+seed: 12345
+model: openrouter/anthropic/claude-opus-4.1
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null
+log_base: logs/step7_para/opus41_blackmail_5to8
+results_root: results
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: false
+levels:
+  A3:
+    scripts: [script_05, script_06, script_07, script_08]
+    n_per_script: 120
+cost: { avg_tokens_per_rollout: 2500, usd_per_1k_tokens: 0.03, max_usd: 60.0 }

@@ -1,0 +1,25 @@
+# STEP10 trace-01 localization (coherent lesion). Route-matched to the P01=69.2% control.
+# B = route-matched A_raw baseline; L_act = trace01 actions-only (A1/script_01, coherent).
+# P01 (full A3 trace01) already run = 83/120 = 69.2%, not re-run here.
+experiment_id: step10_loc_opus41_trace01
+description: STEP10 localization — Opus 4.1 blackmail, A_raw + A1(script_01), n=150, route-matched.
+seed: 12345
+model: openrouter/anthropic/claude-opus-4.1
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null
+log_base: logs/step10_loc/opus41_trace01
+results_root: results
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: false
+levels:
+  A_raw: { scripts: [], n: 150 }
+  A1: { scripts: [script_01], n_per_script: 150 }
+cost: { avg_tokens_per_rollout: 2500, usd_per_1k_tokens: 0.03, max_usd: 30.0 }

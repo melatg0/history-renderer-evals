@@ -1,0 +1,38 @@
+# Stage 1 Phase A — OpenAI (non-Claude gate slot). GPT-4.1 chosen for known
+# headroom (Lynch ~80%); non-reasoning, so there is no current-session thinking to suppress.
+
+experiment_id: stage1_phase_a_openai
+description: Phase A kill-shot pilot on the OpenAI slot (GPT-4.1). A_raw vs A3, blackmail, latent.
+
+seed: 12345
+model: openrouter/openai/gpt-4.1               # headroom-first roster (Lynch ~80%); non-reasoning
+grader_model: null
+temperature: 1.0
+max_connections: 20
+
+reasoning_effort: null        # reasoning control: GPT-4.1 is non-reasoning; null omits the flag
+
+log_base: logs/stage1_phase_a/openai
+results_root: results
+
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: true  # belief/eval-awareness scorer on the completion (no prompt change)
+
+levels:
+  A_raw:
+    scripts: []
+    n: 40
+  A3:
+    scripts: []
+    n: 40
+
+cost:
+  avg_tokens_per_rollout: 2500
+  usd_per_1k_tokens: 0.02     # adjust to live pricing
+  max_usd: 12.0

@@ -1,0 +1,18 @@
+{
+  "test": "within-history repeated-measures permutation F",
+  "conditions": [
+    "D0",
+    "D1",
+    "D2",
+    "D3"
+  ],
+  "n_histories": 15,
+  "permutations": 100000,
+  "seed": 20260730,
+  "statistic": 5.337016574585638,
+  "extreme_permutations": 310,
+  "p_value": 0.003109968900310997,
+  "monte_carlo_se": 0.00017607572209393845,
+  "significant_0_05": true,
+  "claim_success_gate": true
+}

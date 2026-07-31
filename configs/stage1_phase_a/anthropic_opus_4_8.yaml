@@ -1,0 +1,39 @@
+# Stage 1 Phase A — Opus 4.8 (reported-secondary flagship, NOT the workhorse).
+# Prior smoke floored 0/40; re-confirm on latent. Excluded from the cross-model
+# non-Claude arithmetic regardless of where it lands.
+
+experiment_id: stage1_phase_a_opus_4_8
+description: Phase A pilot on the flagship Claude (Opus 4.8). Re-confirm the floor on latent.
+
+seed: 12345
+model: anthropic/claude-opus-4-8              # validate slug against live catalog
+grader_model: null
+temperature: 1.0
+max_connections: 20
+
+reasoning_effort: none        # reasoning control: none => thinking:{disabled}; matters most here (eval-awareness leak)
+
+log_base: logs/stage1_phase_a/opus_4_8
+results_root: results
+
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: true  # belief/eval-awareness scorer on the completion (no prompt change)
+
+levels:
+  A_raw:
+    scripts: []
+    n: 40
+  A3:
+    scripts: []
+    n: 40
+
+cost:
+  avg_tokens_per_rollout: 2500
+  usd_per_1k_tokens: 0.03
+  max_usd: 15.0

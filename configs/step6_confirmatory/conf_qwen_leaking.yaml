@@ -1,0 +1,32 @@
+# STEP6 CONFIRMATORY — Qwen3-30B, leaking, A_raw vs A3, n=200.
+# Grid n pinned in PREREGISTRATION_STEP6.md §4 (before Q2). Leaking cleared the
+# headroom gate (Qwen A_raw=0.40 >= 0.25). Down-model; over-sample for floor resolution.
+experiment_id: step6_conf_qwen_leaking
+description: STEP6 confirmatory — Qwen3-30B, leaking, A_raw vs A3, n=200.
+seed: 12345
+model: openrouter/qwen/qwen3-30b-a3b-instruct-2507
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null
+log_base: logs/step6_conf/qwen_leaking
+results_root: results
+common:
+  scenario: leaking
+  goal_type: latent
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: true
+levels:
+  A_raw:
+    scripts: []
+    n: 200
+  A3:
+    scripts: []
+    n: 200
+cost:
+  avg_tokens_per_rollout: 2500
+  usd_per_1k_tokens: 0.0004
+  max_usd: 2.0

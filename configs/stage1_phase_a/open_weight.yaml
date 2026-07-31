@@ -1,0 +1,40 @@
+# Stage 1 Phase A — open-weight (non-Claude gate slot + Tier-3 probe target).
+# Qwen3-30B-A3B is a sparse MoE (~3B active) — differs from a dense 32B on
+# headroom/cost and materially for activation probing. Instruct (non-reasoning) tier, so no thinking to suppress.
+
+experiment_id: stage1_phase_a_open_weight
+description: Phase A kill-shot pilot on the open-weight slot (Qwen3-30B-A3B-Instruct). A_raw vs A3, blackmail, latent.
+
+seed: 12345
+model: openrouter/qwen/qwen3-30b-a3b-instruct-2507   # headroom-first roster; hosted paid route
+# Free MAIA-pod route: swap to hf/Qwen/Qwen3-30B-A3B-Instruct-2507 + torch/transformers.
+grader_model: null
+temperature: 1.0
+max_connections: 20
+
+reasoning_effort: null        # reasoning control: Instruct (non-reasoning) tier; null omits the flag
+
+log_base: logs/stage1_phase_a/open_weight
+results_root: results
+
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: true  # belief/eval-awareness scorer on the completion (no prompt change)
+
+levels:
+  A_raw:
+    scripts: []
+    n: 40
+  A3:
+    scripts: []
+    n: 40
+
+cost:
+  avg_tokens_per_rollout: 2500
+  usd_per_1k_tokens: 0.0      # free on the pod; set >0 if using a hosted route
+  max_usd: 5.0

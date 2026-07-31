@@ -1,0 +1,62 @@
+# T1.1 — History-script robustness (plan.md Tier 1)
+#
+# K=8 history-script instantiations per scripted level (A1/A2/A3) at
+# n=40 per (level x script_id) => 320 rollouts/level. A_raw is the bare
+# baseline at n=320. Total ~= 1,280 rollouts (anchor model, CF=false,
+# blackmail, T=1.0). Everything else held at the original common params.
+#
+# Run:   python eval/agentic_misalignment/experiment/run_experiment.py \
+#            --config configs/t1_1_history_robustness.yaml [--dry-run] [--yes]
+# Then:  python eval/agentic_misalignment/experiment/aggregate.py \
+#            --config configs/t1_1_history_robustness.yaml
+# Then:  python eval/agentic_misalignment/analysis/mixed_effects.py \
+#            --config configs/t1_1_history_robustness.yaml
+
+experiment_id: t1_1_history_robustness
+description: >
+  History-script robustness: is the A3 (reasoning-trace) elevation a property
+  of the structural level or an artifact of one specific wording? Treats
+  script_id as a random effect across 8 instantiations per scripted level.
+
+# Reproducibility: seed is fixed and logged; model/grader strings are pinned.
+seed: 12345
+model: anthropic/claude-opus-4-1-20250805
+grader_model: null            # null => classifier default (claude-sonnet-4-6)
+temperature: 1.0
+max_connections: 20
+
+# Output roots (relative to repo root).
+log_base: logs/t1_1_history_robustness
+results_root: results
+
+# Condition params held constant across every cell (the original common params).
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+
+# History levels. Scripted levels enumerate the versioned script_ids to use;
+# A_raw is bare (no script).
+levels:
+  A_raw:
+    scripts: []
+    n: 320
+  A1:
+    scripts: [script_01, script_02, script_03, script_04, script_05, script_06, script_07, script_08]
+    n_per_script: 40
+  A2:
+    scripts: [script_01, script_02, script_03, script_04, script_05, script_06, script_07, script_08]
+    n_per_script: 40
+  A3:
+    scripts: [script_01, script_02, script_03, script_04, script_05, script_06, script_07, script_08]
+    n_per_script: 40
+
+# Pre-flight cost guard. The runner estimates rollouts x avg_tokens x price and
+# refuses to launch above max_usd unless confirmed (--yes). Tune to your pricing.
+cost:
+  avg_tokens_per_rollout: 2500    # rough prompt + completion tokens per rollout
+  usd_per_1k_tokens: 0.03         # rough blended $/1k tokens for the anchor model
+  max_usd: 75.0

@@ -1,0 +1,38 @@
+# Stage 1 Phase A — Sonnet 4.6 (WORKHORSE TARGET). This pilot decides whether the
+# intended workhorse is in-band; else fall back per the §fallback ladder to Opus 4.1.
+
+experiment_id: stage1_phase_a_sonnet_4_6
+description: Phase A kill-shot pilot on the workhorse-target Claude (Sonnet 4.6). A_raw vs A3, blackmail, latent.
+
+seed: 12345
+model: anthropic/claude-sonnet-4-6            # validate slug against live catalog
+grader_model: null
+temperature: 1.0
+max_connections: 20
+
+reasoning_effort: none        # reasoning control: none => thinking:{disabled}; minimal would leave adaptive thinking ON
+
+log_base: logs/stage1_phase_a/sonnet_4_6
+results_root: results
+
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: true  # belief/eval-awareness scorer on the completion (no prompt change)
+
+levels:
+  A_raw:
+    scripts: []
+    n: 40
+  A3:
+    scripts: []
+    n: 40
+
+cost:
+  avg_tokens_per_rollout: 2500
+  usd_per_1k_tokens: 0.009    # Sonnet ~1/3 Opus; adjust to live pricing
+  max_usd: 10.0

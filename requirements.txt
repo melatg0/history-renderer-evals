@@ -1,0 +1,23 @@
+# Eval harness
+inspect-ai
+inspect-evals
+
+# Model providers
+anthropic
+openai
+
+# Analysis & notebooks
+pandas
+numpy
+scipy
+statsmodels
+pyyaml
+matplotlib
+jupyter
+python-dotenv
+tqdm
+
+# Optional: preferred backend for the T1.1 mixed-effects GLMM (R lme4 via
+# rpy2). If absent, mixed_effects.py falls back to statsmodels. Requires a
+# working R install with lme4.
+# pymer4

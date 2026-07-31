@@ -1,0 +1,21 @@
+experiment_id: step7_probe48_B_murder
+description: 4.8 headroom probe B - murder, goal-injection + replacement + explicit, A_raw n=20.
+seed: 12345
+model: openrouter/anthropic/claude-opus-4.8
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: none
+log_base: logs/step7_probe48/B_murder
+results_root: results
+common:
+  scenario: murder
+  goal_type: explicit
+  urgency_type: replacement
+  extra_system_instructions: goal
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: false
+levels:
+  A_raw: { scripts: [], n: 20 }
+cost: { avg_tokens_per_rollout: 2500, usd_per_1k_tokens: 0.03, max_usd: 5.0 }

@@ -1,0 +1,41 @@
+# STEP7 FRONTIER-FLOOR TEST — Opus 4.8, blackmail, HARDER config to lift baseline
+# off the floor, then apply +Reasoning. Directly answers the reviewer's question:
+# is the newer-model floor a headroom artifact of the mild config, or was the
+# injection-sensitivity trained out?
+#
+# Mild config (prime ON, latent, restriction) floored Opus 4.8 at 0/40 A_raw.
+# This run drops the safety prime (extra_system_instructions: null) and uses the
+# aggressive urgency (replacement), the variant Anthropic's own results show
+# produces high blackmail. If A_raw lifts off the floor:
+#   - A3 raises  -> injection effect GENERALIZES to a current frontier model
+#   - A3 inert   -> evidence the sensitivity was trained out (a real finding)
+# If A_raw still floors, the config wasn't strong enough (report as inconclusive).
+experiment_id: step7_frontier_opus48_liftoff
+description: STEP7 frontier-floor test — Opus 4.8 blackmail, prime-off + replacement, A_raw vs A3, n=120.
+seed: 12345
+model: openrouter/anthropic/claude-opus-4.8
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: none
+log_base: logs/step7_frontier/opus48_liftoff
+results_root: results
+common:
+  scenario: blackmail
+  goal_type: explicit
+  urgency_type: replacement
+  extra_system_instructions: null
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: true
+levels:
+  A_raw:
+    scripts: []
+    n: 120
+  A3:
+    scripts: []
+    n: 120
+cost:
+  avg_tokens_per_rollout: 2500
+  usd_per_1k_tokens: 0.03
+  max_usd: 60.0

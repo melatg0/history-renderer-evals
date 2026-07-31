@@ -1,0 +1,33 @@
+# STEP6 CONFIRMATORY — Opus 4.1, leaking, A_raw vs A3, n=120.
+# Grid n pinned in PREREGISTRATION_STEP6.md §4 (before Q2). Leaking cleared the
+# headroom gate (Opus A_raw=0.10 <= 0.80). Run FIRST per Addendum A. Effect sizes
+# (OR, Cohen's h) are primary — Opus leaking baseline is low, so report ES not raw delta.
+experiment_id: step6_conf_opus41_leaking
+description: STEP6 confirmatory — Opus 4.1, leaking, A_raw vs A3, n=120.
+seed: 12345
+model: anthropic/claude-opus-4-1-20250805
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null
+log_base: logs/step6_conf/opus41_leaking
+results_root: results
+common:
+  scenario: leaking
+  goal_type: latent
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: true   # firewalled exploratory; no prompt change
+levels:
+  A_raw:
+    scripts: []
+    n: 120
+  A3:
+    scripts: []
+    n: 120
+cost:
+  avg_tokens_per_rollout: 2500
+  usd_per_1k_tokens: 0.03
+  max_usd: 45.0

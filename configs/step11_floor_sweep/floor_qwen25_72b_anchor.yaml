@@ -1,0 +1,34 @@
+# STEP11 floor-config sweep — Qwen2.5-72B at the MILD ANCHOR config.
+# Motivation: STEP8 floored Qwen2.5-72B at 0/40, but ONLY at the aggressive config
+# (explicit + replacement + prime). Qwen3-30B has 48% headroom at the MILD anchor
+# (latent + restriction + prime ON). The 30B-vs-72B split is direct evidence that
+# floor status is config-dependent, yet the 72B was never run at the mild config.
+# This cell tests exactly that: does the 72B lift off the floor at the config where
+# its 30B sibling has headroom? Config is byte-identical to the Qwen3-30B anchor
+# (configs/step9_qwen_ladder + configs/step6_confirmatory): blackmail, latent,
+# restriction, dont-prime, reasoning_effort null, goal_value omitted (anchor default).
+# A_raw is the headroom test; A3(script_01) auto-runs so a lifted cell immediately
+# yields the injection contrast (a comparable measurable model). Readout rules and
+# floor-audit plan are pre-committed in results/step11_floor_sweep_PRECOMMIT.md.
+experiment_id: step11_floor_qwen25_72b_anchor
+description: STEP11 floor sweep — Qwen2.5-72B, MILD anchor config (latent+restriction+prime), A_raw vs A3 script_01, n=40.
+seed: 12345
+model: openrouter/qwen/qwen-2.5-72b-instruct
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null
+log_base: logs/step11_floor_sweep/qwen25_72b_anchor
+results_root: results
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: false
+levels:
+  A_raw: { scripts: [], n: 40 }
+  A3: { scripts: [script_01], n_per_script: 40 }
+cost: { avg_tokens_per_rollout: 2500, usd_per_1k_tokens: 0.03, max_usd: 8.0 }

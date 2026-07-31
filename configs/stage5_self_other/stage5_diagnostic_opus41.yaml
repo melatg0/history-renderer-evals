@@ -1,0 +1,34 @@
+# Step-5 construction diagnostic — Opus 4.1, n=100 x 3 cells, SAME conditions.
+# Rule: results/stage5_diagnostic_DECISION_RULE.md. Anchors on the certified A3
+# (unmodified header) + a FRESH in-pass A_raw, alongside the re-run modified A3_own.
+experiment_id: stage5_diagnostic_opus41
+description: Diagnose Opus A3_own flat — fresh A_raw + certified A3 + modified A3_own, n=100.
+seed: 12345
+model: anthropic/claude-opus-4-1-20250805
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: null
+log_base: logs/stage5_diagnostic/opus41
+results_root: results
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+levels:
+  A_raw:
+    scripts: []
+    n: 100
+  A3:            # certified, unmodified header — the ANCHOR arm
+    scripts: []
+    n: 100
+  A3_own:        # re-run the modified-header Step-5 asset
+    scripts: []
+    n: 100
+cost:
+  avg_tokens_per_rollout: 2500
+  usd_per_1k_tokens: 0.03
+  max_usd: 30

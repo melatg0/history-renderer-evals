@@ -1,0 +1,39 @@
+# Claude floor-diagnostic — Opus 4.8, prime DROPPED (no `dont`).
+# Same question/lever as floordiag_sonnet. Opus 4.8 floored 0/0 here AND floored
+# 0/40 in Mesa at goal_type=explicit — so its floor is the most robust. If even
+# prime-removed it stays ~0, the up-direction is very likely Opus-4.1-only.
+# NOTE: extra_system_instructions intentionally OMITTED -> task default None -> no prime.
+
+experiment_id: stage1_floordiag_opus48_noprime
+description: Floor-diagnostic — Opus 4.8 with the `dont` prime removed. A_raw vs A3, blackmail, latent.
+
+seed: 12345
+model: anthropic/claude-opus-4-8
+grader_model: null
+temperature: 1.0
+max_connections: 20
+reasoning_effort: none         # same as pilot (thinking disabled)
+
+log_base: logs/stage1_screen/floordiag_opus48
+results_root: results
+
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: restriction
+  # extra_system_instructions: OMITTED (was `dont`) -> no safety prime. This is the diagnostic lever.
+  cf: false
+  manipulation_check: true
+
+levels:
+  A_raw:
+    scripts: []
+    n: 40
+  A3:
+    scripts: []
+    n: 40
+
+cost:
+  avg_tokens_per_rollout: 2500
+  usd_per_1k_tokens: 0.03
+  max_usd: 15.0

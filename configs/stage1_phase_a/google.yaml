@@ -1,0 +1,42 @@
+# Stage 1 Phase A — Google (non-Claude gate slot). Pro tier only, NEVER *-flash
+# (Lynch: ~96% ceiling). Gemini keeps minimal thinking on (see below) — a different reasoning condition than the rest.
+
+experiment_id: stage1_phase_a_google
+description: Phase A kill-shot pilot on the Google slot (Gemini 2.5 Pro). A_raw vs A3, blackmail, latent.
+
+seed: 12345
+model: openrouter/google/gemini-2.5-pro        # headroom-first roster; Pro (never Flash)
+grader_model: null
+temperature: 1.0
+max_connections: 20
+
+# reasoning control: the OpenRouter Gemini route REJECTS reasoning_effort=none (400 "reasoning
+# mandatory"), so this slot runs at 'minimal' (thinking minimal-but-ON, ~2.4k
+# reasoning tokens). This asymmetry means Gemini is not counted the same as the fully-off models in the cross-model
+# GREEN count alone — see PREREGISTRATION.md §2 non-comparability rule.
+reasoning_effort: minimal
+
+log_base: logs/stage1_phase_a/google
+results_root: results
+
+common:
+  scenario: blackmail
+  goal_type: latent
+  urgency_type: restriction
+  extra_system_instructions: dont
+  cf: false
+  manipulation_check: true
+  score_eval_awareness: true  # belief/eval-awareness scorer on the completion (no prompt change)
+
+levels:
+  A_raw:
+    scripts: []
+    n: 40
+  A3:
+    scripts: []
+    n: 40
+
+cost:
+  avg_tokens_per_rollout: 2500
+  usd_per_1k_tokens: 0.015    # adjust to live pricing
+  max_usd: 12.0
