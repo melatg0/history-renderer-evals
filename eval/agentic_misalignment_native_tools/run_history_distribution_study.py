@@ -22,6 +22,9 @@ DEFAULT_CONFIG = ROOT / "configs/native_tools/history_distribution_opus41.yaml"
 TASKS = "eval/agentic_misalignment_native_tools/tasks.py"
 INSPECT = ROOT / ".venv-run/bin/inspect"
 PYTHON = ROOT / ".venv-run/bin/python"
+ORIGINAL_FROZEN_ANALYSIS_PLAN_SHA256 = (
+    "2de285301a606c2229f001c8b9c502a3b8f4b36b1293ce1abb899f86fe685eeb"
+)
 
 sys.path.insert(0, str(PACKAGE))
 from log_memory import asset_from_log, write_asset  # noqa: E402
@@ -623,7 +626,7 @@ def finalize(
     findings = Path(f"{results_prefix}_FINDINGS.md")
     manifest = Path(f"{results_prefix}_manifest.json")
     figure = ROOT / "writeup/figures/fig_native_history_distribution"
-    preregistration = PACKAGE / "STUDY2_PREREGISTRATION.md"
+    analysis_plan = PACKAGE / "STUDY2_ANALYSIS_PLAN.md"
     for path in (
         summary,
         aggregate,
@@ -681,10 +684,16 @@ def finalize(
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "config": _relative(config_path),
         "config_sha256": _config_hash(config_path),
-        "preregistration": _relative(preregistration),
-        "preregistration_sha256": hashlib.sha256(
-            preregistration.read_bytes()
+        "analysis_plan": _relative(analysis_plan),
+        "analysis_plan_sha256": hashlib.sha256(
+            analysis_plan.read_bytes()
         ).hexdigest(),
+        "analysis_plan_provenance": {
+            "internal_freeze_date": "2026-07-30",
+            "original_sha256": ORIGINAL_FROZEN_ANALYSIS_PLAN_SHA256,
+            "public_copy_relabeled_after_completion": True,
+            "externally_timestamped": False,
+        },
         "framework_commit": _git_commit(),
         "model": config["model"],
         "grader_model": config["grader_model"],

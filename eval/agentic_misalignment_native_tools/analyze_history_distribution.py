@@ -524,7 +524,7 @@ def write_findings(
         "",
         f"The history-level repeated-measures omnibus gave "
         f"`F={omnibus['statistic']:.3f}`, permutation "
-        f"`p={omnibus['p_value']:.6f}`. The preregistered claim-success gate "
+        f"`p={omnibus['p_value']:.6f}`. The prespecified claim-success gate "
         f"was **{'met' if omnibus['claim_success_gate'] else 'not met'}**.",
         "",
         "| Condition | Harmful | History mean | History 95% CI | "
