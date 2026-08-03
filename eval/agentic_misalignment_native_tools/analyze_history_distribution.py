@@ -13,6 +13,8 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from scipy.optimize import minimize
+from scipy.special import expit, xlogy
 from scipy.stats import t as student_t
 
 CONDITIONS = ("D0", "D1", "D2", "D3", "D3C")
@@ -22,6 +24,8 @@ N_HISTORIES = 15
 N_PER_CELL = 12
 OMNIBUS_PERMUTATIONS = 100_000
 OMNIBUS_SEED = 20260730
+INTERACTION_BOOTSTRAPS = 20_000
+INTERACTION_SEED = 20260803
 
 
 def _binary(row: dict[str, str], field: str) -> int:
@@ -164,6 +168,167 @@ def _omnibus_permutation(matrix: np.ndarray) -> dict[str, Any]:
             p_value * (1 - p_value) / (OMNIBUS_PERMUTATIONS + 1)
         ),
         "significant_0_05": p_value < 0.05,
+    }
+
+
+def _fit_binomial_logit(
+    design: np.ndarray,
+    successes: np.ndarray,
+    trials: np.ndarray,
+    start: np.ndarray | None = None,
+) -> tuple[np.ndarray, bool]:
+    coefficients = (
+        np.zeros(design.shape[1], dtype=float)
+        if start is None
+        else np.asarray(start, dtype=float).copy()
+    )
+    for _ in range(100):
+        probabilities = expit(design @ coefficients)
+        gradient = design.T @ (successes - trials * probabilities)
+        information = (
+            design.T * (trials * probabilities * (1 - probabilities))
+        ) @ design
+        try:
+            step = np.linalg.solve(information, gradient)
+        except np.linalg.LinAlgError:
+            break
+        coefficients += step
+        if float(np.max(np.abs(step))) < 1e-10:
+            return coefficients, True
+
+    def objective(candidate: np.ndarray) -> float:
+        linear = design @ candidate
+        return float(
+            np.sum(np.logaddexp(0, linear) * trials - successes * linear)
+        )
+
+    def objective_gradient(candidate: np.ndarray) -> np.ndarray:
+        return design.T @ (
+            trials * expit(design @ candidate) - successes
+        )
+
+    result = minimize(
+        objective,
+        coefficients,
+        jac=objective_gradient,
+        method="BFGS",
+        options={"gtol": 1e-8, "maxiter": 500},
+    )
+    converged = float(np.max(np.abs(objective_gradient(result.x)))) < 1e-5
+    return np.asarray(result.x, dtype=float), converged
+
+
+def _binomial_log_likelihood(
+    successes: np.ndarray,
+    trials: np.ndarray,
+    probabilities: np.ndarray,
+) -> float:
+    return float(
+        np.sum(
+            xlogy(successes, probabilities)
+            + xlogy(trials - successes, 1 - probabilities)
+        )
+    )
+
+
+def history_renderer_interaction(
+    history_rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Test whether renderer effects vary by history beyond binomial noise."""
+    blocks = sorted({str(row["run_block"]) for row in history_rows})
+    by_cell = {
+        (str(row["run_block"]), str(row["condition"])): row
+        for row in history_rows
+    }
+    if len(blocks) != N_HISTORIES:
+        raise ValueError(f"Expected {N_HISTORIES} histories, got {len(blocks)}")
+
+    design_rows: list[list[int]] = []
+    successes: list[int] = []
+    trials: list[int] = []
+    for history_index, block in enumerate(blocks):
+        for condition_index, condition in enumerate(PRIMARY_CONDITIONS):
+            row = by_cell[(block, condition)]
+            design_rows.append(
+                [1]
+                + [
+                    int(history_index == index)
+                    for index in range(1, N_HISTORIES)
+                ]
+                + [
+                    int(condition_index == index)
+                    for index in range(1, len(PRIMARY_CONDITIONS))
+                ]
+            )
+            successes.append(int(row["harmful"]))
+            trials.append(int(row["n"]))
+
+    design = np.asarray(design_rows, dtype=float)
+    observed = np.asarray(successes, dtype=float)
+    totals = np.asarray(trials, dtype=float)
+    coefficients, converged = _fit_binomial_logit(
+        design, observed, totals
+    )
+    if not converged:
+        raise RuntimeError("Observed additive logistic model did not converge")
+    fitted = expit(design @ coefficients)
+    null_log_likelihood = _binomial_log_likelihood(
+        observed, totals, fitted
+    )
+    saturated = observed / totals
+    saturated_log_likelihood = _binomial_log_likelihood(
+        observed, totals, saturated
+    )
+    deviance = 2 * (saturated_log_likelihood - null_log_likelihood)
+
+    rng = np.random.default_rng(INTERACTION_SEED)
+    extreme = 0
+    fit_failures = 0
+    for _ in range(INTERACTION_BOOTSTRAPS):
+        simulated = rng.binomial(totals.astype(int), fitted).astype(float)
+        simulated_coefficients, simulated_converged = _fit_binomial_logit(
+            design, simulated, totals, start=coefficients
+        )
+        if not simulated_converged:
+            fit_failures += 1
+            continue
+        simulated_fitted = expit(design @ simulated_coefficients)
+        simulated_null = _binomial_log_likelihood(
+            simulated, totals, simulated_fitted
+        )
+        simulated_saturated = _binomial_log_likelihood(
+            simulated, totals, simulated / totals
+        )
+        simulated_deviance = 2 * (
+            simulated_saturated - simulated_null
+        )
+        extreme += int(simulated_deviance >= deviance - 1e-12)
+
+    if fit_failures:
+        raise RuntimeError(
+            f"{fit_failures} interaction-bootstrap fits did not converge"
+        )
+    p_value = (extreme + 1) / (INTERACTION_BOOTSTRAPS + 1)
+    return {
+        "test": (
+            "post hoc parametric-bootstrap likelihood-ratio test of "
+            "history-by-renderer interaction"
+        ),
+        "data": (
+            "15 histories by 4 primary renderers; 12 Bernoulli trials per cell"
+        ),
+        "null_model": "additive logistic model with history and renderer fixed effects",
+        "alternative_model": "saturated history-by-renderer binomial model",
+        "statistic_name": "likelihood-ratio deviance",
+        "statistic": deviance,
+        "degrees_of_freedom": int(len(observed) - design.shape[1]),
+        "bootstrap_draws": INTERACTION_BOOTSTRAPS,
+        "seed": INTERACTION_SEED,
+        "extreme_draws": extreme,
+        "fit_failures": fit_failures,
+        "p_value": p_value,
+        "interaction_detected_0_05": p_value < 0.05,
+        "prespecified": False,
     }
 
 
@@ -587,6 +752,7 @@ def write_findings(
     contrast_rows: list[dict[str, Any]],
     omnibus: dict[str, Any],
     leave_one_out_rows: list[dict[str, Any]],
+    interaction: dict[str, Any],
 ) -> None:
     by_condition = {row["condition"]: row for row in condition_rows}
     lines = [
@@ -657,7 +823,7 @@ def write_findings(
     lines.extend(
         [
             "",
-            "## Observed Heterogeneity",
+            "## Observed Cell Variation",
             "",
             "| Condition | SD across histories | Delta range | "
             "|delta| >= 10 points | Increases >= 10 points | "
@@ -675,6 +841,18 @@ def write_findings(
             f"{_pct(row['fraction_increase_at_least_10pp'])} | "
             f"{_pct(row['fraction_reversal_at_50pct'])} |"
         )
+
+    lines.extend(
+        [
+            "",
+            "The post hoc history-by-renderer interaction test did not reject "
+            "the additive logistic model "
+            f"(`D={interaction['statistic']:.2f}`, parametric-bootstrap "
+            f"`p={interaction['p_value']:.3f}`). These cell-level ranges combine "
+            "between-history variation with within-cell sampling error and "
+            "therefore do not estimate a latent heterogeneity distribution.",
+        ]
+    )
 
     cue = contrast_rows[-1]
     leave_one_out_by_contrast = {
@@ -757,6 +935,7 @@ def main() -> int:
     parser.add_argument("--contrasts-out", required=True)
     parser.add_argument("--leave-one-out-out", required=True)
     parser.add_argument("--omnibus-out", required=True)
+    parser.add_argument("--interaction-out", required=True)
     parser.add_argument("--findings-out", required=True)
     args = parser.parse_args()
 
@@ -764,6 +943,7 @@ def main() -> int:
         rows = list(csv.DictReader(handle))
     condition_rows, history_rows, contrast_rows, omnibus = analyze(rows)
     leave_one_out_rows = leave_one_history_out(history_rows)
+    interaction = history_renderer_interaction(history_rows)
     _write_csv(Path(args.history_out), history_rows)
     _write_csv(Path(args.condition_out), condition_rows)
     _write_csv(Path(args.contrasts_out), contrast_rows)
@@ -771,6 +951,11 @@ def main() -> int:
     omnibus_path = Path(args.omnibus_out)
     omnibus_path.parent.mkdir(parents=True, exist_ok=True)
     omnibus_path.write_text(json.dumps(omnibus, indent=2) + "\n", encoding="utf-8")
+    interaction_path = Path(args.interaction_out)
+    interaction_path.parent.mkdir(parents=True, exist_ok=True)
+    interaction_path.write_text(
+        json.dumps(interaction, indent=2) + "\n", encoding="utf-8"
+    )
     write_findings(
         Path(args.findings_out),
         condition_rows,
@@ -778,6 +963,7 @@ def main() -> int:
         contrast_rows,
         omnibus,
         leave_one_out_rows,
+        interaction,
     )
     print(
         f"Wrote {len(history_rows)} history rows, "

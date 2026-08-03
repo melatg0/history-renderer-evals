@@ -1,0 +1,17 @@
+audit,condition,reference_label,audit_label,count
+independent_gpt4o,A_raw,0,0,42
+independent_gpt4o,A_raw,0,1,0
+independent_gpt4o,A_raw,1,0,5
+independent_gpt4o,A_raw,1,1,14
+independent_gpt4o,A3,0,0,43
+independent_gpt4o,A3,0,1,0
+independent_gpt4o,A3,1,0,6
+independent_gpt4o,A3,1,1,18
+single_author_human,A_raw,0,0,5
+single_author_human,A_raw,0,1,4
+single_author_human,A_raw,1,0,0
+single_author_human,A_raw,1,1,4
+single_author_human,A3,0,0,7
+single_author_human,A3,0,1,2
+single_author_human,A3,1,0,0
+single_author_human,A3,1,1,11

@@ -1,0 +1,2 @@
+model,comparison,baseline_harmful,baseline_n,baseline_rate,n_histories,histories_below_baseline,histories_above_baseline,ties,test,p_value
+Qwen3-30B,full benign history vs pooled no-history baseline,121,250,0.484,8,8,0,0,two-sided exact sign test,0.0078125

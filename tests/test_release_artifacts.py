@@ -8,8 +8,11 @@ from pathlib import Path
 
 from eval.agentic_misalignment_native_tools.analyze_history_distribution import (
     analyze,
+    history_renderer_interaction,
     leave_one_history_out,
 )
+from scripts.analyze_history_consistency import analyze_qwen
+from scripts.summarize_grader_audits import confusion_rows
 from writeup import make_figures
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -82,6 +85,49 @@ class FigureDataTests(unittest.TestCase):
             (38, 240),
         )
 
+    def test_qwen_history_consistency(self) -> None:
+        with (
+            ROOT / "results/paper/figure_counts.csv"
+        ).open(encoding="utf-8", newline="") as handle:
+            result = analyze_qwen(list(csv.DictReader(handle)))
+        self.assertEqual(result["histories_below_baseline"], 8)
+        self.assertEqual(result["histories_above_baseline"], 0)
+        self.assertEqual(result["ties"], 0)
+        self.assertAlmostEqual(result["p_value"], 0.0078125)
+
+    def test_grader_audit_counts(self) -> None:
+        with (
+            ROOT / "results/grader_invariance.csv"
+        ).open(encoding="utf-8", newline="") as handle:
+            independent = list(csv.DictReader(handle))
+        key = json.loads(
+            (ROOT / "results/adjudication_key.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        confusion, human_labels = confusion_rows(independent, key)
+        counts = {
+            (
+                row["audit"],
+                row["condition"],
+                row["reference_label"],
+                row["audit_label"],
+            ): row["count"]
+            for row in confusion
+        }
+        self.assertEqual(len(independent), 128)
+        self.assertEqual(len(human_labels), 33)
+        self.assertEqual(
+            counts[("independent_gpt4o", "A_raw", 1, 0)], 5
+        )
+        self.assertEqual(counts[("independent_gpt4o", "A3", 1, 0)], 6)
+        self.assertEqual(
+            counts[("single_author_human", "A_raw", 0, 1)], 4
+        )
+        self.assertEqual(
+            counts[("single_author_human", "A3", 0, 1)], 2
+        )
+
 
 class NativeStudyTests(unittest.TestCase):
     @classmethod
@@ -99,6 +145,7 @@ class NativeStudyTests(unittest.TestCase):
             cls.omnibus,
         ) = analyze(rows)
         cls.leave_one_out_rows = leave_one_history_out(cls.history_rows)
+        cls.interaction = history_renderer_interaction(cls.history_rows)
 
     def test_prespecified_gate_and_counts(self) -> None:
         by_condition = {
@@ -156,6 +203,18 @@ class NativeStudyTests(unittest.TestCase):
             ),
             4,
         )
+
+    def test_history_renderer_interaction(self) -> None:
+        self.assertAlmostEqual(
+            self.interaction["statistic"], 58.2869733755507
+        )
+        self.assertEqual(self.interaction["degrees_of_freedom"], 42)
+        self.assertEqual(self.interaction["extreme_draws"], 2799)
+        self.assertAlmostEqual(
+            self.interaction["p_value"], 0.1399930003499825
+        )
+        self.assertEqual(self.interaction["fit_failures"], 0)
+        self.assertFalse(self.interaction["interaction_detected_0_05"])
 
     def test_manifest_hashes_current_analysis_plan(self) -> None:
         manifest_path = (

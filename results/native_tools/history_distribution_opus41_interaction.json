@@ -1,0 +1,16 @@
+{
+  "test": "post hoc parametric-bootstrap likelihood-ratio test of history-by-renderer interaction",
+  "data": "15 histories by 4 primary renderers; 12 Bernoulli trials per cell",
+  "null_model": "additive logistic model with history and renderer fixed effects",
+  "alternative_model": "saturated history-by-renderer binomial model",
+  "statistic_name": "likelihood-ratio deviance",
+  "statistic": 58.28697337555059,
+  "degrees_of_freedom": 42,
+  "bootstrap_draws": 20000,
+  "seed": 20260803,
+  "extreme_draws": 2799,
+  "fit_failures": 0,
+  "p_value": 0.1399930003499825,
+  "interaction_detected_0_05": false,
+  "prespecified": false
+}

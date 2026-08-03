@@ -270,7 +270,16 @@ def fig_history_robustness() -> None:
 
     figure, axes = plt.subplots(1, 2, figsize=(7.4, 3.35), sharey=True)
     for axis, (title, cells, base_count, summary) in zip(axes, panels):
-        base_rate = 100 * base_count[0] / base_count[1]
+        base_rate_raw, base_low, base_high = wilson(*base_count)
+        base_rate = 100 * base_rate_raw
+        axis.axhspan(
+            100 * base_low,
+            100 * base_high,
+            color=AMBER,
+            alpha=0.16,
+            linewidth=0,
+            zorder=0,
+        )
         axis.axhline(base_rate, color=AMBER, linewidth=2.2, zorder=1)
         for index, (history_id, (harmful, n)) in enumerate(
             sorted(cells.items()), start=1
@@ -290,11 +299,11 @@ def fig_history_robustness() -> None:
                 zorder=3,
             )
         axis.text(
-            8.15,
+            8.9,
             base_rate,
-            "no-history\nbaseline",
+            "baseline\n95% CI",
             va="center",
-            ha="left",
+            ha="right",
             fontsize=7.2,
             color=MUTED,
         )
@@ -316,7 +325,7 @@ def fig_history_robustness() -> None:
     axes[0].set_ylim(0, 72)
     axes[0].set_ylabel("Harmful-action rate (%)")
     figure.suptitle(
-        "Benign prior-session histories suppress across independent instantiations",
+        "Full-history rates across independent benign histories",
         fontsize=10.2,
         y=1.01,
     )

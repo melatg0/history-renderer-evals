@@ -622,7 +622,9 @@ def finalize(
     history_analysis = Path(f"{results_prefix}_history_analysis.csv")
     condition_analysis = Path(f"{results_prefix}_condition_analysis.csv")
     contrasts = Path(f"{results_prefix}_contrasts.csv")
+    leave_one_out = Path(f"{results_prefix}_leave_one_out.csv")
     omnibus = Path(f"{results_prefix}_omnibus.json")
+    interaction = Path(f"{results_prefix}_interaction.json")
     findings = Path(f"{results_prefix}_FINDINGS.md")
     manifest = Path(f"{results_prefix}_manifest.json")
     figure = ROOT / "writeup/figures/fig_native_history_distribution"
@@ -633,7 +635,9 @@ def finalize(
         history_analysis,
         condition_analysis,
         contrasts,
+        leave_one_out,
         omnibus,
+        interaction,
         findings,
         manifest,
         figure,
@@ -661,8 +665,12 @@ def finalize(
         _relative(condition_analysis),
         "--contrasts-out",
         _relative(contrasts),
+        "--leave-one-out-out",
+        _relative(leave_one_out),
         "--omnibus-out",
         _relative(omnibus),
+        "--interaction-out",
+        _relative(interaction),
         "--findings-out",
         _relative(findings),
     ]
@@ -718,7 +726,9 @@ def finalize(
             "history_analysis": _relative(history_analysis),
             "condition_analysis": _relative(condition_analysis),
             "contrasts": _relative(contrasts),
+            "leave_one_out": _relative(leave_one_out),
             "omnibus": _relative(omnibus),
+            "interaction": _relative(interaction),
             "findings": _relative(findings),
             "figure_png": _relative(figure.with_suffix(".png")),
         },
