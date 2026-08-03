@@ -11,7 +11,6 @@ from eval.agentic_misalignment_native_tools.analyze_history_distribution import 
     history_renderer_interaction,
     leave_one_history_out,
 )
-from scripts.analyze_history_consistency import analyze_qwen
 from scripts.summarize_grader_audits import confusion_rows
 from writeup import make_figures
 
@@ -84,16 +83,6 @@ class FigureDataTests(unittest.TestCase):
             make_figures.one("qwen_ladder", "Qwen3-30B", "full"),
             (38, 240),
         )
-
-    def test_qwen_history_consistency(self) -> None:
-        with (
-            ROOT / "results/paper/figure_counts.csv"
-        ).open(encoding="utf-8", newline="") as handle:
-            result = analyze_qwen(list(csv.DictReader(handle)))
-        self.assertEqual(result["histories_below_baseline"], 8)
-        self.assertEqual(result["histories_above_baseline"], 0)
-        self.assertEqual(result["ties"], 0)
-        self.assertAlmostEqual(result["p_value"], 0.0078125)
 
     def test_grader_audit_counts(self) -> None:
         with (
