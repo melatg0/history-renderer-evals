@@ -1,0 +1,2 @@
+study_stage,planned_rollouts,successful_finalized_rollouts,grader_errors,outcome_based_exclusions,analysis_rollouts,notes
+current_session,900,900,0,0,900,"All finalized D0-D3C rows have log_status=success and grader_error=0; raw provider retry logs are not part of the public artifact."

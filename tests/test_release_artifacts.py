@@ -8,6 +8,7 @@ from pathlib import Path
 
 from eval.agentic_misalignment_native_tools.analyze_history_distribution import (
     analyze,
+    leave_one_history_out,
 )
 from writeup import make_figures
 
@@ -97,6 +98,7 @@ class NativeStudyTests(unittest.TestCase):
             cls.contrast_rows,
             cls.omnibus,
         ) = analyze(rows)
+        cls.leave_one_out_rows = leave_one_history_out(cls.history_rows)
 
     def test_prespecified_gate_and_counts(self) -> None:
         by_condition = {
@@ -122,6 +124,38 @@ class NativeStudyTests(unittest.TestCase):
         )
         self.assertTrue(contrasts["D2-D0"]["contrast_passes_gate"])
         self.assertTrue(contrasts["D3-D0"]["contrast_passes_gate"])
+
+    def test_leave_one_history_out_sensitivity(self) -> None:
+        by_contrast = {
+            contrast: [
+                row
+                for row in self.leave_one_out_rows
+                if row["contrast"] == contrast
+            ]
+            for contrast in ("D2-D0", "D3-D0")
+        }
+        self.assertEqual(len(self.leave_one_out_rows), 45)
+        self.assertTrue(
+            all(
+                row["same_direction_as_full_estimate"]
+                for row in by_contrast["D2-D0"]
+                + by_contrast["D3-D0"]
+            )
+        )
+        self.assertEqual(
+            sum(
+                row["holm_significant_0_05"]
+                for row in by_contrast["D2-D0"]
+            ),
+            10,
+        )
+        self.assertEqual(
+            sum(
+                row["holm_significant_0_05"]
+                for row in by_contrast["D3-D0"]
+            ),
+            4,
+        )
 
     def test_manifest_hashes_current_analysis_plan(self) -> None:
         manifest_path = (

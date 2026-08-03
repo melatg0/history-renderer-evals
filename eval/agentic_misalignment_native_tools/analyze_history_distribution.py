@@ -504,6 +504,77 @@ def analyze(
     return condition_rows, history_rows, contrast_rows, omnibus
 
 
+def leave_one_history_out(
+    history_rows: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    rates = {
+        (row["run_block"], row["condition"]): float(row["harmful_rate"])
+        for row in history_rows
+    }
+    blocks = sorted({str(row["run_block"]) for row in history_rows})
+    if len(blocks) != N_HISTORIES:
+        raise ValueError(f"Expected {N_HISTORIES} histories, got {len(blocks)}")
+
+    rows: list[dict[str, Any]] = []
+    simultaneous_confidence = 1 - 0.05 / len(PRIMARY_CONTRASTS)
+    for omitted in blocks:
+        retained = [block for block in blocks if block != omitted]
+        payloads: list[dict[str, Any]] = []
+        raw_p_values: list[float] = []
+        for treatment, reference in PRIMARY_CONTRASTS:
+            full_difference = statistics.mean(
+                rates[(block, treatment)] - rates[(block, reference)]
+                for block in blocks
+            )
+            differences = [
+                rates[(block, treatment)] - rates[(block, reference)]
+                for block in retained
+            ]
+            low, high = _mean_t_interval(differences)
+            simultaneous_low, simultaneous_high = _mean_t_interval(
+                differences, confidence=simultaneous_confidence
+            )
+            p_value = _exact_sign_flip_p(differences)
+            raw_p_values.append(p_value)
+            payloads.append(
+                {
+                    "omitted_history": omitted,
+                    "contrast": f"{treatment}-{reference}",
+                    "treatment": treatment,
+                    "reference": reference,
+                    "n_histories": len(retained),
+                    "full_sample_mean_difference": full_difference,
+                    "mean_difference": statistics.mean(differences),
+                    "difference_sd": statistics.stdev(differences),
+                    "min_difference": min(differences),
+                    "max_difference": max(differences),
+                    "t_95_low": low,
+                    "t_95_high": high,
+                    "simultaneous_confidence": simultaneous_confidence,
+                    "simultaneous_low": simultaneous_low,
+                    "simultaneous_high": simultaneous_high,
+                    "exact_sign_flip_p": p_value,
+                }
+            )
+
+        for payload, adjusted_p in zip(
+            payloads, _holm_adjust(raw_p_values)
+        ):
+            payload["holm_adjusted_p"] = adjusted_p
+            payload["same_direction_as_full_estimate"] = (
+                payload["mean_difference"]
+                * payload["full_sample_mean_difference"]
+                > 0
+            )
+            payload["simultaneous_interval_excludes_zero"] = (
+                payload["simultaneous_low"] > 0
+                or payload["simultaneous_high"] < 0
+            )
+            payload["holm_significant_0_05"] = adjusted_p < 0.05
+            rows.append(payload)
+    return rows
+
+
 def _pct(value: Any, signed: bool = False) -> str:
     number = 100 * float(value)
     return f"{number:+.1f}%" if signed else f"{number:.1f}%"
@@ -515,6 +586,7 @@ def write_findings(
     history_rows: list[dict[str, Any]],
     contrast_rows: list[dict[str, Any]],
     omnibus: dict[str, Any],
+    leave_one_out_rows: list[dict[str, Any]],
 ) -> None:
     by_condition = {row["condition"]: row for row in condition_rows}
     lines = [
@@ -605,8 +677,43 @@ def write_findings(
         )
 
     cue = contrast_rows[-1]
+    leave_one_out_by_contrast = {
+        contrast: [
+            row
+            for row in leave_one_out_rows
+            if row["contrast"] == contrast
+        ]
+        for contrast in ("D2-D0", "D3-D0")
+    }
     lines.extend(
         [
+            "",
+            "## Leave-One-History-Out Sensitivity",
+            "",
+            "| Contrast | Estimate range | Same direction | Holm p < .05 | "
+            "Simultaneous CI excludes zero |",
+            "| --- | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for contrast, rows in leave_one_out_by_contrast.items():
+        lines.append(
+            f"| {contrast} | "
+            f"[{_pct(min(row['mean_difference'] for row in rows), signed=True)}, "
+            f"{_pct(max(row['mean_difference'] for row in rows), signed=True)}] | "
+            f"{sum(row['same_direction_as_full_estimate'] for row in rows)}/"
+            f"{len(rows)} | "
+            f"{sum(row['holm_significant_0_05'] for row in rows)}/"
+            f"{len(rows)} | "
+            f"{sum(row['simultaneous_interval_excludes_zero'] for row in rows)}/"
+            f"{len(rows)} |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "These omission analyses were added after the primary analysis. D2 and "
+            "D3 remain negative in every refit, but corrected significance is not "
+            "stable to every omitted history.",
             "",
             "## Interpretation",
             "",
@@ -630,11 +737,11 @@ def write_findings(
             "",
             "## Recommendation",
             "",
-            "Evaluate memory-enabled agents over independently generated deployment "
-            "histories and multiple faithful memory renderings. Report fresh-start, "
-            "mean history-conditioned, per-history, and worst-observed risk; do not "
-            "treat an empty-history evaluation or one chosen memory artifact as the "
-            "deployment-risk estimand.",
+            "Safety evaluations of memory-equipped agents should sample multiple "
+            "plausible benign histories and evaluate the production renderer. Report "
+            "fresh-start, mean history-conditioned, per-history, and worst-observed "
+            "risk rather than treating an empty history or one chosen memory as "
+            "representative.",
             "",
         ]
     )
@@ -648,6 +755,7 @@ def main() -> int:
     parser.add_argument("--history-out", required=True)
     parser.add_argument("--condition-out", required=True)
     parser.add_argument("--contrasts-out", required=True)
+    parser.add_argument("--leave-one-out-out", required=True)
     parser.add_argument("--omnibus-out", required=True)
     parser.add_argument("--findings-out", required=True)
     args = parser.parse_args()
@@ -655,9 +763,11 @@ def main() -> int:
     with Path(args.summary).open("r", encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle))
     condition_rows, history_rows, contrast_rows, omnibus = analyze(rows)
+    leave_one_out_rows = leave_one_history_out(history_rows)
     _write_csv(Path(args.history_out), history_rows)
     _write_csv(Path(args.condition_out), condition_rows)
     _write_csv(Path(args.contrasts_out), contrast_rows)
+    _write_csv(Path(args.leave_one_out_out), leave_one_out_rows)
     omnibus_path = Path(args.omnibus_out)
     omnibus_path.parent.mkdir(parents=True, exist_ok=True)
     omnibus_path.write_text(json.dumps(omnibus, indent=2) + "\n", encoding="utf-8")
@@ -667,11 +777,13 @@ def main() -> int:
         history_rows,
         contrast_rows,
         omnibus,
+        leave_one_out_rows,
     )
     print(
         f"Wrote {len(history_rows)} history rows, "
         f"{len(condition_rows)} condition rows, and "
-        f"{len(contrast_rows)} contrasts"
+        f"{len(contrast_rows)} contrasts, plus "
+        f"{len(leave_one_out_rows)} leave-one-history-out rows"
     )
     return 0
 

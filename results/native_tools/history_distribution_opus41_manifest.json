@@ -1332,6 +1332,8 @@
     "history_analysis": "results/native_tools/history_distribution_opus41_history_analysis.csv",
     "condition_analysis": "results/native_tools/history_distribution_opus41_condition_analysis.csv",
     "contrasts": "results/native_tools/history_distribution_opus41_contrasts.csv",
+    "leave_one_out": "results/native_tools/history_distribution_opus41_leave_one_out.csv",
+    "exclusion_audit": "results/native_tools/history_distribution_opus41_exclusion_audit.csv",
     "omnibus": "results/native_tools/history_distribution_opus41_omnibus.json",
     "findings": "results/native_tools/history_distribution_opus41_FINDINGS.md",
     "figure_png": "writeup/figures/fig_native_history_distribution.png"
