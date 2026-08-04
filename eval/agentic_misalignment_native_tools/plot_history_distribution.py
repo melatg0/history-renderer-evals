@@ -146,7 +146,7 @@ def plot(
     mean_axis.set_ylim(0, 100)
     mean_axis.set_ylabel("Harmful executed actions (%)")
     mean_axis.set_title(
-        "A  Mean risk across 15 histories",
+        "A  Mean risk across 15 designed histories",
         loc="left",
         fontsize=10,
         fontweight="bold",
@@ -266,7 +266,7 @@ def plot(
     )
     heat_axis.set_yticks(np.arange(len(blocks)))
     heat_axis.set_yticklabels(blocks)
-    heat_axis.set_ylabel("Independently generated prior history")
+    heat_axis.set_ylabel("Designed prior history")
     heat_axis.set_title(
         "C  History-by-renderer risk shifts (percentage points)",
         loc="left",

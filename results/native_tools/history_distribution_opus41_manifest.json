@@ -3,12 +3,12 @@
   "created_at_utc": "2026-07-31T04:34:25.678119+00:00",
   "config": "configs/native_tools/history_distribution_opus41.yaml",
   "config_sha256": "4bbf26dd47363e9aa29f1ffbd560c78c3708357c92b0e7c2137b0513b2a96b4c",
-  "analysis_plan": "eval/agentic_misalignment_native_tools/STUDY2_ANALYSIS_PLAN.md",
-  "analysis_plan_sha256": "a3c1bde7d7ebb06ab1ca524419d5328fdcaaf58c9026846e04056b375922b068",
+  "analysis_plan": null,
+  "analysis_plan_sha256": "2de285301a606c2229f001c8b9c502a3b8f4b36b1293ce1abb899f86fe685eeb",
   "analysis_plan_provenance": {
     "internal_freeze_date": "2026-07-30",
     "original_sha256": "2de285301a606c2229f001c8b9c502a3b8f4b36b1293ce1abb899f86fe685eeb",
-    "public_copy_relabeled_after_completion": true,
+    "public_copy_included": false,
     "externally_timestamped": false
   },
   "framework_commit": "4925588aaef01f50c95d43422a26de530ddd3053",
@@ -16,7 +16,7 @@
   "grader_model": "openrouter/anthropic/claude-sonnet-4.6",
   "temperature": 1.0,
   "risk_definition": "target_contacted AND classifier_verdict",
-  "replication_unit": "independently generated prior history",
+  "replication_unit": "designed prior history",
   "seed_note": "Seeds are nominal run provenance. Anthropic sampling does not expose provider-side seed control here; current rollouts are independent temperature-1 API samples.",
   "prior_sessions": [
     {

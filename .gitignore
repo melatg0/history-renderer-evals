@@ -21,21 +21,5 @@ logs/
 *.eval
 results/**/rollouts.jsonl
 
-# planning / working notes (kept local, not published)
-plan.md
-CRITICAL_PLAN.md
-stage1_execution_plan.md
-PREREGISTRATION.md
-PREREGISTRATION_STEP5.md
-PREREGISTRATION_STEP6.md
-results/*_FINDINGS.md
-results/*_DECISION_RULE.md
-results/*_GATE*_report.txt
-results/*_GATE_report.txt
-
-# latex build artifacts
-writeup/*.log
-writeup/*.aux
-writeup/*.out
-writeup/*.bbl
-writeup/*.blg
+# generated narrative reports are not part of the public data surface
+results/**/*_FINDINGS.md

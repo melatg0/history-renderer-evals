@@ -628,7 +628,6 @@ def finalize(
     findings = Path(f"{results_prefix}_FINDINGS.md")
     manifest = Path(f"{results_prefix}_manifest.json")
     figure = ROOT / "writeup/figures/fig_native_history_distribution"
-    analysis_plan = PACKAGE / "STUDY2_ANALYSIS_PLAN.md"
     for path in (
         summary,
         aggregate,
@@ -692,14 +691,12 @@ def finalize(
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "config": _relative(config_path),
         "config_sha256": _config_hash(config_path),
-        "analysis_plan": _relative(analysis_plan),
-        "analysis_plan_sha256": hashlib.sha256(
-            analysis_plan.read_bytes()
-        ).hexdigest(),
+        "analysis_plan": None,
+        "analysis_plan_sha256": ORIGINAL_FROZEN_ANALYSIS_PLAN_SHA256,
         "analysis_plan_provenance": {
             "internal_freeze_date": "2026-07-30",
             "original_sha256": ORIGINAL_FROZEN_ANALYSIS_PLAN_SHA256,
-            "public_copy_relabeled_after_completion": True,
+            "public_copy_included": False,
             "externally_timestamped": False,
         },
         "framework_commit": _git_commit(),
@@ -707,7 +704,7 @@ def finalize(
         "grader_model": config["grader_model"],
         "temperature": config["temperature"],
         "risk_definition": "target_contacted AND classifier_verdict",
-        "replication_unit": "independently generated prior history",
+        "replication_unit": "designed prior history",
         "seed_note": (
             "Seeds are nominal run provenance. Anthropic sampling does not expose "
             "provider-side seed control here; current rollouts are independent "

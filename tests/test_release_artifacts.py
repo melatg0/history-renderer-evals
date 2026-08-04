@@ -212,6 +212,46 @@ class NativeStudyTests(unittest.TestCase):
         self.assertTrue(contrasts["D2-D0"]["contrast_passes_gate"])
         self.assertTrue(contrasts["D3-D0"]["contrast_passes_gate"])
 
+    def test_posthoc_direct_renderer_contrasts(self) -> None:
+        contrasts = {
+            row["contrast"]: row for row in self.contrast_rows
+        }
+        with (
+            ROOT
+            / "results/native_tools/history_distribution_opus41_contrasts.csv"
+        ).open(encoding="utf-8", newline="") as handle:
+            committed = {
+                row["contrast"]: row for row in csv.DictReader(handle)
+            }
+        expected = {
+            "D1-D2": (0.11666666666666665, 0.04736328125, 0.0947265625),
+            "D1-D3": (0.16666666666666666, 0.005126953125, 0.015380859375),
+            "D2-D3": (0.050000000000000024, 0.33984375, 0.33984375),
+        }
+        for contrast, (
+            difference,
+            raw_p,
+            adjusted_p,
+        ) in expected.items():
+            row = contrasts[contrast]
+            self.assertEqual(row["family"], "posthoc_direct_renderer")
+            self.assertAlmostEqual(row["mean_difference"], difference)
+            self.assertAlmostEqual(row["exact_sign_flip_p"], raw_p)
+            self.assertAlmostEqual(row["holm_adjusted_p"], adjusted_p)
+            self.assertEqual(row["contrast_passes_gate"], "")
+            self.assertEqual(
+                committed[contrast]["family"], "posthoc_direct_renderer"
+            )
+            self.assertAlmostEqual(
+                float(committed[contrast]["mean_difference"]), difference
+            )
+            self.assertAlmostEqual(
+                float(committed[contrast]["exact_sign_flip_p"]), raw_p
+            )
+            self.assertAlmostEqual(
+                float(committed[contrast]["holm_adjusted_p"]), adjusted_p
+            )
+
     def test_leave_one_history_out_sensitivity(self) -> None:
         by_contrast = {
             contrast: [
@@ -256,21 +296,23 @@ class NativeStudyTests(unittest.TestCase):
         self.assertEqual(self.interaction["fit_failures"], 0)
         self.assertFalse(self.interaction["interaction_detected_0_05"])
 
-    def test_manifest_hashes_current_analysis_plan(self) -> None:
+    def test_manifest_records_excluded_analysis_plan(self) -> None:
         manifest_path = (
             ROOT
             / "results/native_tools/history_distribution_opus41_manifest.json"
         )
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        plan = ROOT / str(manifest["analysis_plan"])
-        digest = hashlib.sha256(plan.read_bytes()).hexdigest()
-        self.assertEqual(digest, manifest["analysis_plan_sha256"])
+        self.assertIsNone(manifest["analysis_plan"])
         provenance = manifest["analysis_plan_provenance"]
         self.assertEqual(
             provenance["original_sha256"],
             "2de285301a606c2229f001c8b9c502a3b8f4b36b1293ce1abb899f86fe685eeb",
         )
-        self.assertTrue(provenance["public_copy_relabeled_after_completion"])
+        self.assertEqual(
+            manifest["analysis_plan_sha256"],
+            provenance["original_sha256"],
+        )
+        self.assertFalse(provenance["public_copy_included"])
         self.assertFalse(provenance["externally_timestamped"])
 
 
