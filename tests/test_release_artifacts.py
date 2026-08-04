@@ -11,6 +11,7 @@ from eval.agentic_misalignment_native_tools.analyze_history_distribution import 
     history_renderer_interaction,
     leave_one_history_out,
 )
+from scripts import analyze_controlled_histories
 from scripts.summarize_grader_audits import confusion_rows
 from writeup import make_figures
 
@@ -83,6 +84,56 @@ class FigureDataTests(unittest.TestCase):
             make_figures.one("qwen_ladder", "Qwen3-30B", "full"),
             (38, 240),
         )
+
+    def test_controlled_history_level_estimates(self) -> None:
+        rows = analyze_controlled_histories.load_rows()
+        expected = {
+            "Qwen3-30B": (0.221125, 0.484, -0.262875),
+            "Mistral-Large": (0.3697916667, 0.55, -0.1802083333),
+        }
+        for index, (model, values) in enumerate(expected.items()):
+            panel = analyze_controlled_histories.load_panel(model, rows=rows)
+            result = analyze_controlled_histories.history_bootstrap(
+                panel, draws=20_000, seed=20260803 + index
+            )
+            self.assertAlmostEqual(result["equal_history_mean"], values[0])
+            self.assertAlmostEqual(result["baseline_rate"], values[1])
+            self.assertAlmostEqual(result["mean_difference"], values[2])
+            self.assertLess(result["bootstrap_ci_high"], 0)
+
+        opus = analyze_controlled_histories.load_panel(
+            "Opus 4.1",
+            exclude_histories=frozenset({"h1"}),
+            rows=rows,
+        )
+        result = analyze_controlled_histories.history_bootstrap(
+            opus, draws=20_000, seed=20260806
+        )
+        self.assertAlmostEqual(result["equal_history_mean"], 0.4494371075)
+        self.assertAlmostEqual(result["mean_difference"], -0.0105628925)
+        self.assertLess(result["bootstrap_ci_low"], 0)
+        self.assertGreater(result["bootstrap_ci_high"], 0)
+
+    def test_fixed_h1_budget_exposes_opus_failure(self) -> None:
+        with (
+            ROOT / "results/paper/history_budget_stability.csv"
+        ).open(encoding="utf-8", newline="") as handle:
+            rows = list(csv.DictReader(handle))
+        fixed = {
+            (row["model"], int(row["rollouts_per_history"])): float(
+                row["agreement_rate"]
+            )
+            for row in rows
+            if row["sampling"] == "fixed_h1"
+        }
+        self.assertGreater(
+            fixed[("Qwen3-30B", 100)], fixed[("Qwen3-30B", 10)]
+        )
+        self.assertLess(
+            fixed[("Opus 4.1", 100)], fixed[("Opus 4.1", 10)]
+        )
+        self.assertGreater(fixed[("Qwen3-30B", 100)], 0.99)
+        self.assertEqual(fixed[("Opus 4.1", 100)], 0.0)
 
     def test_grader_audit_counts(self) -> None:
         with (

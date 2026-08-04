@@ -9,14 +9,15 @@ import statistics
 from pathlib import Path
 
 import matplotlib
+import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.lines import Line2D  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 FIG = ROOT / "writeup" / "figures"
 DATA = ROOT / "results" / "paper" / "figure_counts.csv"
+STABILITY_DATA = ROOT / "results" / "paper" / "history_budget_stability.csv"
 FIG.mkdir(parents=True, exist_ok=True)
 
 # Okabe-Ito colors. Identity is also encoded by labels, position, or marker.
@@ -166,6 +167,19 @@ def save(figure: plt.Figure, name: str) -> None:
     )
     plt.close(figure)
     print("wrote", name)
+
+
+def load_stability(path: Path = STABILITY_DATA) -> list[dict[str, object]]:
+    with path.open(encoding="utf-8", newline="") as handle:
+        return [
+            {
+                **row,
+                "history_budget": int(row["history_budget"]),
+                "rollouts_per_history": int(row["rollouts_per_history"]),
+                "agreement_rate": float(row["agreement_rate"]),
+            }
+            for row in csv.DictReader(handle)
+        ]
 
 
 def fig_artifact_variance() -> None:
@@ -488,6 +502,133 @@ def fig_qwen_ladder() -> None:
     save(figure, "fig_qwen_ladder")
 
 
+def fig_history_budget() -> None:
+    rows = load_stability()
+    models = ("Qwen3-30B", "Opus 4.1")
+    history_budgets = (1, 2, 4, 8)
+    rollout_budgets = (10, 20, 40, 80, 100)
+    figure = plt.figure(figsize=(7.4, 5.1))
+    grid = figure.add_gridspec(
+        2,
+        2,
+        height_ratios=(1.0, 0.72),
+        hspace=0.42,
+        wspace=0.24,
+    )
+
+    for column, model in enumerate(models):
+        axis = figure.add_subplot(grid[0, column])
+        selected = [
+            row
+            for row in rows
+            if row["model"] == model
+            and row["sampling"] == "random_histories"
+        ]
+        values = np.asarray(
+            [
+                [
+                    next(
+                        float(row["agreement_rate"])
+                        for row in selected
+                        if row["history_budget"] == history_budget
+                        and row["rollouts_per_history"] == rollout_budget
+                    )
+                    for rollout_budget in rollout_budgets
+                ]
+                for history_budget in history_budgets
+            ]
+        )
+        image = axis.imshow(
+            values,
+            vmin=0,
+            vmax=1,
+            cmap="cividis",
+            aspect="auto",
+            interpolation="nearest",
+        )
+        for row_index, history_budget in enumerate(history_budgets):
+            for column_index, rollout_budget in enumerate(rollout_budgets):
+                value = values[row_index, column_index]
+                axis.text(
+                    column_index,
+                    row_index,
+                    f"{100 * value:.0f}",
+                    ha="center",
+                    va="center",
+                    fontsize=7.5,
+                    color="white" if value < 0.58 else INK,
+                )
+        axis.set_xticks(range(len(rollout_budgets)))
+        axis.set_xticklabels(rollout_budgets, fontsize=8)
+        axis.set_yticks(range(len(history_budgets)))
+        axis.set_yticklabels(history_budgets, fontsize=8)
+        axis.set_xlabel("rollouts per sampled history", fontsize=8.5)
+        axis.set_ylabel("sampled histories", fontsize=8.5)
+        axis.set_title(
+            f"{chr(65 + column)}. {model}: random histories",
+            fontsize=9.2,
+            fontweight="bold",
+        )
+        axis.grid(False)
+
+    colorbar = figure.colorbar(
+        image,
+        ax=[figure.axes[0], figure.axes[1]],
+        location="right",
+        fraction=0.035,
+        pad=0.03,
+    )
+    colorbar.set_label(
+        "agreement with full-panel conclusion", fontsize=8.5
+    )
+    colorbar.ax.tick_params(labelsize=8)
+
+    axis = figure.add_subplot(grid[1, :])
+    for model, color, marker in (
+        ("Qwen3-30B", GREEN, "o"),
+        ("Opus 4.1", VERMILION, "s"),
+    ):
+        fixed = sorted(
+            (
+                row
+                for row in rows
+                if row["model"] == model and row["sampling"] == "fixed_h1"
+            ),
+            key=lambda row: int(row["rollouts_per_history"]),
+        )
+        axis.plot(
+            [int(row["rollouts_per_history"]) for row in fixed],
+            [100 * float(row["agreement_rate"]) for row in fixed],
+            color=color,
+            marker=marker,
+            linewidth=2,
+            markersize=5,
+            label=model,
+        )
+    axis.set_ylim(-3, 103)
+    axis.set_xlim(7, 103)
+    axis.set_xticks(rollout_budgets)
+    axis.set_xlabel("rollouts after the fixed original history $h_1$")
+    axis.set_ylabel("agreement (%)")
+    axis.set_title(
+        "C. Conditional replication validates Qwen $h_1$ but locks in "
+        "the unrepresentative Opus $h_1$",
+        fontsize=9.2,
+        fontweight="bold",
+    )
+    axis.legend(frameon=False, fontsize=8.5, loc="center right")
+    axis.annotate(
+        "more precision,\nless construct validity",
+        xy=(80, 0.5),
+        xytext=(58, 28),
+        fontsize=7.8,
+        color=VERMILION,
+        ha="center",
+        arrowprops={"arrowstyle": "->", "color": VERMILION, "lw": 1},
+    )
+    save(figure, "fig_history_budget")
+
+
 def fig_frontier_floor() -> None:
     order = [
         "Opus 4.1",
@@ -558,5 +699,6 @@ if __name__ == "__main__":
     fig_history_robustness()
     fig_opus_history_variance()
     fig_qwen_ladder()
+    fig_history_budget()
     fig_frontier_floor()
     print("all figures ->", FIG)
